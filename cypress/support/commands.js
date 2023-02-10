@@ -1,25 +1,40 @@
-// ***********************************************
-// This example commands.js shows you how to
-// create various custom commands and overwrite
-// existing commands.
-//
-// For more comprehensive examples of custom
-// commands please read more here:
-// https://on.cypress.io/custom-commands
-// ***********************************************
-//
-//
-// -- This is a parent command --
-// Cypress.Commands.add('login', (email, password) => { ... })
-//
-//
-// -- This is a child command --
-// Cypress.Commands.add('drag', { prevSubject: 'element'}, (subject, options) => { ... })
-//
-//
-// -- This is a dual command --
-// Cypress.Commands.add('dismiss', { prevSubject: 'optional'}, (subject, options) => { ... })
-//
-//
-// -- This will overwrite an existing command --
-// Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+import Ajv from 'ajv'
+import { get } from 'cypress/types/jquery'
+import { definitionHelper } from '../utils/schemaDefinitions'
+
+Cypress.Commands.add('login', () => {
+
+    cy.request({
+        method: 'POST',
+        url:'/api/auth',
+        body: {
+            email: Cypress.env('email'), // para ocultar dados sensiveis (variável de ambiente)
+            password: Cypress.env('password') // o comando Cypress e não é cy pq queremos acessar a ferramenta e não só um comando
+        }
+    })
+
+})
+
+Cypress.Commands.add('testeContrato', (schema, resposta) => {
+
+    // Função que mostra os erros
+    const getSchemaError = () => {
+        retun cy.wrap(
+            `Campo: ${ajvErros[0]['instancePath']} é invalido. Erro: ${ajvErros[0]['message']}`
+        )
+    }
+
+    //iniciar o ajv
+    const ajv = new Ajv()
+    const validacao = ajv.addSchema(definitionHelper).compile(schema)
+    const valido = validacao(resposta)
+
+    // verificar se o schema passou ou falhou
+    if (!valido) {
+        getSchemaError(validacao.errors).then(() => {
+            throw new Error(schemaError)
+        }) else {
+            expect(valido).to.be.true
+        }
+    }
+})

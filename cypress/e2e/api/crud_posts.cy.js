@@ -5,14 +5,8 @@ describe('CRUD - Posts', () => {
 
     beforeEach(() => {
         
-        cy.request({
-            method: 'POST',
-            url:'/api/auth',
-            body: {
-                email: Cypress.env('email'), //para ocultar dados sensiveis (variável de ambiente)
-                password: Cypress.env('password') //o comando Cypress e não é cy pq queremos acessar a ferramenta e não só um comando
-            }
-        })
+        cy.login()
+        
     })
     
     it('cria um post', () => {
