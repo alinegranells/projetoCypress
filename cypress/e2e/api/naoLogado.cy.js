@@ -19,7 +19,7 @@ describe('API - profile', () => {
                 expect(body[0].skills[0]).to.eq('Cypress')
                 expect(body[0].skills).to.have.lengthOf(1)
                 expect(body[0].date).to.not.be.null
-                //expect(headers.['x-powered-by']).to.eq('Express')
+                expect(headers.['x-powered-by']).to.eq('Express')
             })
         })
     })
@@ -60,7 +60,7 @@ describe('API - profile', () => {
                 
                 cy.request({
                     method: 'GET',
-                    url: `${urlPerfil}/${body[1].user._id}`
+                    url: `${url}/${body[1].user._id}`
                 }).then(({ status, body }) => {
                     expect(status).to.eq(200)
                     expect(body.status).to.eq('Outro')
