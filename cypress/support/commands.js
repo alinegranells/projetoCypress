@@ -1,40 +1,52 @@
 import Ajv from 'ajv'
-import { get } from 'cypress/types/jquery'
 import { definitionHelper } from '../utils/schemaDefinitions'
 
-Cypress.Commands.add('login', () => {
+// loga na aplicação via API
+Cypress.Commands.add('login', (email, password) => {
+    cy.session([email, password], () => {
 
-    cy.request({
-        method: 'POST',
-        url:'/api/auth',
-        body: {
-            email: Cypress.env('email'), // para ocultar dados sensiveis (variável de ambiente)
-            password: Cypress.env('password') // o comando Cypress e não é cy pq queremos acessar a ferramenta e não só um comando
-        }
+        cy.request({
+            method: 'POST',
+            url: '/api/auth',
+            body: {
+                email,
+                password
+            }
+        }).then(({body}) => {
+            cy.log('PRINT:')
+    
+            // window.localStorage.setItem('jwt, body.jwt)
+            cy.setCookie('jwt', body.jwt)
+        })
     })
-
 })
 
+
+// executa teste de contrato em uma API
 Cypress.Commands.add('testeContrato', (schema, resposta) => {
 
-    // Função que mostra os erros
-    const getSchemaError = () => {
-        retun cy.wrap(
+    // função que mostra os erros
+    const getSchemaError = ajvErros => {
+        return cy.wrap(
             `Campo: ${ajvErros[0]['instancePath']} é invalido. Erro: ${ajvErros[0]['message']}`
         )
     }
 
-    //iniciar o ajv
+    // iniciar o AJV
     const ajv = new Ajv()
     const validacao = ajv.addSchema(definitionHelper).compile(schema)
     const valido = validacao(resposta)
 
     // verificar se o schema passou ou falhou
     if (!valido) {
-        getSchemaError(validacao.errors).then(() => {
+        getSchemaError(validacao.errors).then(schemaError => {
             throw new Error(schemaError)
-        }) else {
-            expect(valido).to.be.true
-        }
-    }
+        })
+    } else
+        expect(valido, 'Validação de contrato').to.be.true
+})
+
+// seleciona um elemento pelo atributo data-test
+Cypress.Commands.add('getElement', seletor => {
+    return cy.get(`[data-test=${seletor}]`)
 })
